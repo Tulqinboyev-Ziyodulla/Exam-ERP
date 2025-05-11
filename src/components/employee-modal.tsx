@@ -2,13 +2,12 @@
 
 import { zodResolver } from '@hookform/resolvers/zod'
 import { format } from 'date-fns'
-import { CalendarIcon, Loader2, Plus } from 'lucide-react'
-import { useState } from 'react'
+import { Loader2, Plus } from 'lucide-react'
+import { useEffect, useState } from 'react'
 import { useForm } from 'react-hook-form'
 import * as z from 'zod'
 
 import { Button } from '../components/ui/button'
-import { Calendar } from '../components/ui/calendar'
 import {
 	Dialog,
 	DialogContent,
@@ -26,17 +25,32 @@ import {
 } from '../components/ui/form'
 import { Input } from '../components/ui/input'
 import {
-	Popover,
-	PopoverContent,
-	PopoverTrigger,
-} from '../components/ui/popover'
-import {
 	Select,
 	SelectContent,
 	SelectItem,
 	SelectTrigger,
 	SelectValue,
 } from '../components/ui/select'
+
+type Branch = {
+	id: number
+	name: string
+	region: string
+	district: string
+	phone: string
+	additional_phone: string | null
+	address: string
+	latitude: string | null
+	longitude: string | null
+	working_days: []
+}
+
+type Shift = {
+	id: number
+	name: string
+	start_time: string
+	end_time: string
+}
 
 const formSchema = z.object({
 	user: z.object({
@@ -69,6 +83,81 @@ type EmployeeFormValues = z.infer<typeof formSchema>
 export function EmployeeModal() {
 	const [open, setOpen] = useState(false)
 	const [isSubmitting, setIsSubmitting] = useState(false)
+	const [branches] = useState<Branch[]>([
+		{
+			id: 2,
+			name: 'Chilonzor filiali 1',
+			region: '1',
+			district: '1',
+			phone: '+998912345678',
+			additional_phone: '+99893952123',
+			address: "Foziltepa ko'chasi, 22-B uy",
+			latitude: '49.200000',
+			longitude: '69.200000',
+			working_days: [],
+		},
+		{
+			id: 3,
+			name: 'Yashnabod 1',
+			region: 'Toshkent shahri',
+			district: 'Sergeli tumani',
+			phone: '+998931234567',
+			additional_phone: null,
+			address: 'Yashnabod tumani ,',
+			latitude: '41.210000',
+			longitude: '69.220000',
+			working_days: [],
+		},
+		{
+			id: 1,
+			name: 'Uchtepa filiali 1',
+			region: '1',
+			district: '1',
+			phone: '+998912345678',
+			additional_phone: '+998939542122',
+			address: "Foziltepa ko'chasi, 22-B uy",
+			latitude: '49.200000',
+			longitude: '69.200000',
+			working_days: [],
+		},
+		{
+			id: 6,
+			name: 'Chilonzor filiali',
+			region: 'Toshkent shahri',
+			district: 'Chilonzor tumani',
+			phone: '+998917654123',
+			additional_phone: '+998917654123',
+			address: 'Chilonzor filiali',
+			latitude: null,
+			longitude: null,
+			working_days: [],
+		},
+		{
+			id: 7,
+			name: 'Mirobod filiali',
+			region: 'Samarqand viloyati',
+			district: 'Jomboy tumani',
+			phone: '+998717777777',
+			additional_phone: '+998717777777',
+			address: "Mirobod tumani Amirobod ko'chasi",
+			latitude: null,
+			longitude: null,
+			working_days: [],
+		},
+		{
+			id: 8,
+			name: 'Yangi',
+			region: 'Toshkent shahri',
+			district: 'Uchtepa tumani',
+			phone: '+998939542111',
+			additional_phone: null,
+			address: 'dsfsfsffs',
+			latitude: '41.290000',
+			longitude: '69.170000',
+			working_days: [],
+		},
+	])
+	const [shifts, setShifts] = useState<Shift[]>([])
 
 	const form = useForm<EmployeeFormValues>({
 		resolver: zodResolver(formSchema),
@@ -79,7 +168,7 @@ export function EmployeeModal() {
 				phone_number: '+998',
 				passport_number: '',
 				jshshr: '',
-				birth_date: new Date(),
+				birth_date: new Date(1990, 0, 1),
 				salary_type: 'official',
 			},
 			branch_id: 0,
@@ -90,6 +179,45 @@ export function EmployeeModal() {
 			official_salary: '',
 		},
 	})
+
+	useEffect(() => {
+		const branchId = form.getValues('branch_id')
+		if (branchId) {
+			fetchShifts(branchId)
+		}
+	}, [form.watch('branch_id')])
+
+	const fetchShifts = async (branchId: number) => {
+		if (!branchId) return
+
+		try {
+			const token = localStorage.getItem('accessToken')
+			if (!token) {
+				console.error('Access token not found')
+				return
+			}
+
+			const response = await fetch(
+				`https://api.noventer.uz/api/v1/company/shifts/${branchId}/`,
+				{
+					headers: {
+						Authorization: `Bearer ${token}`,
+					},
+				}
+			)
+
+			if (response.ok) {
+				const data = await response.json()
+				setShifts(data)
+			} else {
+				console.error('Failed to fetch shifts:', await response.text())
+				setShifts([])
+			}
+		} catch (error) {
+			console.error('Error fetching shifts:', error)
+			setShifts([])
+		}
+	}
 
 	async function onSubmit(values: EmployeeFormValues) {
 		setIsSubmitting(true)
@@ -271,46 +399,156 @@ export function EmployeeModal() {
 											<FormLabel>
 												Tug'ilgan sana
 											</FormLabel>
-											<Popover>
-												<PopoverTrigger asChild>
-													<FormControl>
-														<Button
-															variant={'outline'}
-															className={`w-full pl-3 text-left font-normal ${
-																!field.value
-																	? 'text-muted-foreground'
-																	: ''
-															}`}
-														>
-															{field.value ? (
-																format(
-																	field.value,
-																	'dd.MM.yyyy'
-																)
-															) : (
-																<span>
-																	Sanani
-																	tanlang
-																</span>
-															)}
-															<CalendarIcon className='ml-auto h-4 w-4 opacity-50' />
-														</Button>
-													</FormControl>
-												</PopoverTrigger>
-												<PopoverContent
-													className='w-auto p-0'
-													align='start'
+											<div className='grid grid-cols-3 gap-2'>
+												<Select
+													onValueChange={day => {
+														const currentDate =
+															field.value ||
+															new Date()
+														const newDate =
+															new Date(
+																currentDate
+															)
+														newDate.setDate(
+															Number.parseInt(day)
+														)
+														field.onChange(newDate)
+													}}
+													value={
+														field.value
+															? field.value
+																	.getDate()
+																	.toString()
+															: '1'
+													}
 												>
-													<Calendar
-														mode='single'
-														selected={field.value}
-														onSelect={
-															field.onChange
-														}
-														initialFocus
-													/>
-												</PopoverContent>
-											</Popover>
+													<FormControl>
+														<SelectTrigger>
+															<SelectValue placeholder='Kun' />
+														</SelectTrigger>
+													</FormControl>
+													<SelectContent>
+														{Array.from(
+															{ length: 31 },
+															(_, i) => i + 1
+														).map(day => (
+															<SelectItem
+																key={day}
+																value={day.toString()}
+															>
+																{day}
+															</SelectItem>
+														))}
+													</SelectContent>
+												</Select>
+
+												<Select
+													onValueChange={month => {
+														const currentDate =
+															field.value ||
+															new Date()
+														const newDate =
+															new Date(
+																currentDate
+															)
+														newDate.setMonth(
+															Number.parseInt(
+																month
+															)
+														)
+														field.onChange(newDate)
+													}}
+													value={
+														field.value
+															? field.value
+																	.getMonth()
+																	.toString()
+															: '0'
+													}
+												>
+													<FormControl>
+														<SelectTrigger>
+															<SelectValue placeholder='Oy' />
+														</SelectTrigger>
+													</FormControl>
+													<SelectContent>
+														{[
+															'Yanvar',
+															'Fevral',
+															'Mart',
+															'Aprel',
+															'May',
+															'Iyun',
+															'Iyul',
+															'Avgust',
+															'Sentabr',
+															'Oktabr',
+															'Noyabr',
+															'Dekabr',
+														].map(
+															(month, index) => (
+																<SelectItem
+																	key={index}
+																	value={index.toString()}
+																>
+																	{month}
+																</SelectItem>
+															)
+														)}
+													</SelectContent>
+												</Select>
+
+												<Select
+													onValueChange={year => {
+														const currentDate =
+															field.value ||
+															new Date()
+														const newDate =
+															new Date(
+																currentDate
+															)
+														newDate.setFullYear(
+															Number.parseInt(
+																year
+															)
+														)
+														field.onChange(newDate)
+													}}
+													value={
+														field.value
+															? field.value
+																	.getFullYear()
+																	.toString()
+															: '1990'
+													}
+												>
+													<FormControl>
+														<SelectTrigger>
+															<SelectValue placeholder='Yil' />
+														</SelectTrigger>
+													</FormControl>
+													<SelectContent className='max-h-[200px]'>
+														{Array.from(
+															{
+																length:
+																	new Date().getFullYear() -
+																	1940 +
+																	1,
+															},
+															(_, i) =>
+																new Date().getFullYear() -
+																i
+														).map(year => (
+															<SelectItem
+																key={year}
+																value={year.toString()}
+															>
+																{year}
+															</SelectItem>
+														))}
+													</SelectContent>
+												</Select>
+											</div>
 											<FormMessage />
 										</FormItem>
 									)}
@@ -358,22 +596,37 @@ export function EmployeeModal() {
 										render={({ field }) => (
 											<FormItem>
 												<FormLabel>Filial</FormLabel>
-												<FormControl>
-													<Input
-														type='number'
-														min='0'
-														placeholder='Filial ID'
-														{...field}
-														onChange={e =>
-															field.onChange(
-																Number(
-																	e.target
-																		.value
-																)
+												<Select
+													onValueChange={value => {
+														const branchId =
+															Number(value)
+														field.onChange(branchId)
+														fetchShifts(branchId)
+													}}
+													value={field.value.toString()}
+												>
+													<FormControl>
+														<SelectTrigger>
+															<SelectValue placeholder='Filialni tanlang' />
+														</SelectTrigger>
+													</FormControl>
+													<SelectContent>
+														{branches.map(
+															branch => (
+																<SelectItem
+																	key={
+																		branch.id
+																	}
+																	value={branch.id.toString()}
+																>
+																	{
+																		branch.name
+																	}
+																</SelectItem>
 															)
-														}
-													/>
-												</FormControl>
+														)}
+													</SelectContent>
+												</Select>
 												<FormMessage />
 											</FormItem>
 										)}
@@ -412,22 +665,43 @@ export function EmployeeModal() {
 										render={({ field }) => (
 											<FormItem>
 												<FormLabel>Smena</FormLabel>
-												<FormControl>
-													<Input
-														type='number'
-														min='0'
-														placeholder='Smena ID'
-														{...field}
-														onChange={e =>
-															field.onChange(
-																Number(
-																	e.target
-																		.value
+												<Select
+													onValueChange={value =>
+														field.onChange(
+															Number(value)
+														)
+													}
+													value={
+														field.value
+															? field.value.toString()
+															: ''
+													}
+													disabled={
+														shifts.length === 0
+													}
+												>
+													<FormControl>
+														<SelectTrigger>
+															<SelectValue placeholder='Smenani tanlang' />
+														</SelectTrigger>
+													</FormControl>
+													<SelectContent>
+														{shifts.map(shift => (
+															<SelectItem
+																key={shift.id}
+																value={shift.id.toString()}
+															>
+																{shift.name} (
+																{
+																	shift.start_time
+																}{' '}
+																-{' '}
+																{shift.end_time}
 																)
-															)
-														}
-													/>
-												</FormControl>
+															</SelectItem>
+														))}
+													</SelectContent>
+												</Select>
 												<FormMessage />
 											</FormItem>
 										)}

@@ -9,6 +9,7 @@ import { useEffect, useState } from 'react'
 import { Link, useOutletContext } from 'react-router-dom'
 import { Button } from '../components/ui/button'
 import { Skeleton } from '../components/ui/skeleton'
+import { useUser } from '../context/UserContext'
 
 interface SidebarContextType {
 	isCollapsed: boolean
@@ -48,7 +49,7 @@ export default function ProfilePage() {
 	const [taskCount, setTaskCount] = useState(0)
 	const [officialSalary, setOfficialSalary] = useState(0)
 	const [unofficialSalary, setUnofficialSalary] = useState(0)
-
+	const { setUser } = useUser()
 	useEffect(() => {
 		const fetchUserData = async () => {
 			const token = localStorage.getItem('accessToken')
@@ -69,6 +70,10 @@ export default function ProfilePage() {
 				}
 
 				const data: UserData = await response.json()
+				setUser({
+					name: data.full_name,
+					avatarUrl: data.avatar,
+				})
 				setUserData(data)
 			} catch (error) {
 				console.error('Error fetching user data:', error)
@@ -157,8 +162,8 @@ export default function ProfilePage() {
 					className='right-10 transition-all duration-300 ease-in-out py-6'
 					style={{
 						width: isCollapsed
-							? 'calc(100% + 650px)'
-							: 'calc(100% + 430px)',
+							? 'calc(100% + 550px)'
+							: 'calc(100% + 230px)',
 					}}
 				>
 					<div className='flex items-center border-b'>
@@ -217,8 +222,8 @@ export default function ProfilePage() {
 				className='right-10 transition-all duration-300 ease-in-out py-6'
 				style={{
 					width: isCollapsed
-						? 'calc(100% + 650px)'
-						: 'calc(100% + 430px)',
+						? 'calc(100% + 550px)'
+						: 'calc(100% + 230px)',
 				}}
 			>
 				<div className='flex items-center border-b'>
@@ -270,7 +275,7 @@ export default function ProfilePage() {
 									{userData?.full_name || 'Sheroz Turdiyev'}
 								</h1>
 								<span className='bg-white/20 text-white px-3 py-1 rounded-full text-sm'>
-									{userData?.role === 'Rahbar'
+									{userData?.role === 'director'
 										? 'Rahbar'
 										: userData?.role}
 								</span>
@@ -280,7 +285,7 @@ export default function ProfilePage() {
 								<div className='bg-white/20 backdrop-blur-md rounded-lg p-4 text-white w-80'>
 									<p className='text-sm mb-1'>Finance card</p>
 									<p className='text-xs mb-3 opacity-80'>
-										ID: {userData?.id || '0989736'}
+										ID: {userData?.id || '0'}
 									</p>
 
 									<p className='text-sm mb-1'>

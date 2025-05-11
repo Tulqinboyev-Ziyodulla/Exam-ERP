@@ -6,6 +6,7 @@ import {
 	ReceiptText,
 	Search,
 	Settings,
+	UserIcon,
 	Users,
 } from 'lucide-react'
 import { useState } from 'react'
@@ -22,6 +23,7 @@ import {
 	SidebarMenuItem,
 	SidebarTrigger,
 } from '../components/ui/sidebar'
+import { useUser } from '../context/UserContext'
 import FullscreenToggle from './FullscreenToggle'
 import NotificationPanel from './NotificationPanel'
 import SearchInput from './SearchInput'
@@ -50,6 +52,7 @@ export function AppSidebar({ onSidebarToggle }: Props) {
 	}
 
 	const [notifOpen, setNotifOpen] = useState(false)
+	const { user } = useUser()
 
 	return (
 		<div>
@@ -111,11 +114,15 @@ export function AppSidebar({ onSidebarToggle }: Props) {
 
 							<Tooltip title='Profil' placement='bottom'>
 								<Link to={'/'}>
-									<img
-										className='w-10 h-10 border rounded-full cursor-pointer'
-										src='/src/assets/images/user.jpg'
-										alt='user photo'
-									/>
+									{user?.avatarUrl ? (
+										<img
+											src={user.avatarUrl}
+											alt='User avatar'
+											className='w-8 h-8 rounded-full object-cover'
+										/>
+									) : (
+										<UserIcon className='w-8 h-8 text-muted-foreground' />
+									)}
 								</Link>
 							</Tooltip>
 						</div>

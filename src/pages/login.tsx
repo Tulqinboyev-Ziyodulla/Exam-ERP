@@ -2,7 +2,6 @@ import axios from 'axios'
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { toast } from 'sonner'
-
 import { Logo, LogoDark } from '../assets'
 import LottieLoader from '../components/lottie-loader'
 import { MultiStepLoaderDemo } from '../components/multiloader'

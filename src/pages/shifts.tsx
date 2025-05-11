@@ -1,5 +1,7 @@
 'use client'
+
 import type React from 'react'
+
 import { Eye, Pencil, Plus, Trash2, X } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { useOutletContext } from 'react-router-dom'
@@ -288,12 +290,14 @@ export default function ShiftsPage() {
 				throw new Error('Failed to create shift')
 			}
 
+			// Get the actual data from the response
 			const data = await response.json()
 
+			// Add the new shift to the list if it matches the current filter
 			if (
 				!selectedBranch ||
 				Number.parseInt(formData.branch) ===
-				Number.parseInt(selectedBranch)
+					Number.parseInt(selectedBranch)
 			) {
 				setShifts(prev => [...prev, data])
 			}
@@ -303,6 +307,7 @@ export default function ShiftsPage() {
 			resetForm()
 			setLoading(false)
 
+			// Refresh the list to ensure we have the latest data
 			if (selectedBranch) {
 				fetchShifts()
 			}
@@ -349,12 +354,14 @@ export default function ShiftsPage() {
 				throw new Error('Failed to update shift')
 			}
 
+			// Get the actual updated data
 			const updatedShift = await response.json()
 
+			// Update the shift in the list if it's still visible with current filter
 			if (
 				!selectedBranch ||
 				Number.parseInt(formData.branch) ===
-				Number.parseInt(selectedBranch)
+					Number.parseInt(selectedBranch)
 			) {
 				setShifts(prev =>
 					prev.map(shift =>
@@ -362,6 +369,7 @@ export default function ShiftsPage() {
 					)
 				)
 			} else {
+				// If the branch was changed and no longer matches the filter, remove it from the list
 				setShifts(prev =>
 					prev.filter(shift => shift.id !== editingShift.id)
 				)
@@ -373,6 +381,7 @@ export default function ShiftsPage() {
 			resetForm()
 			setLoading(false)
 
+			// Refresh the list to ensure we have the latest data
 			if (selectedBranch) {
 				fetchShifts()
 			}
@@ -411,6 +420,7 @@ export default function ShiftsPage() {
 				throw new Error('Failed to delete shift')
 			}
 
+			// Remove shift from the list immediately after successful deletion
 			setShifts(prev => prev.filter(shift => shift.id !== deleteShiftId))
 			toast.success("Smena muvaffaqiyatli o'chirildi")
 			setIsDeleteDialogOpen(false)
@@ -467,6 +477,7 @@ export default function ShiftsPage() {
 			[name]: value,
 		}))
 
+		// Clear error when user types
 		if (formErrors[name as keyof typeof formErrors]) {
 			setFormErrors(prev => ({
 				...prev,
@@ -704,6 +715,7 @@ export default function ShiftsPage() {
 					</Pagination>
 				)}
 
+				{/* Create Shift Dialog */}
 				<Dialog
 					open={isCreateDialogOpen}
 					onOpenChange={setIsCreateDialogOpen}
@@ -1097,7 +1109,10 @@ function ShiftsSkeleton({ isCollapsed }: { isCollapsed: boolean }) {
 						</thead>
 						<tbody>
 							{skeletonRows.map((_, index) => (
-								<tr key={index} className='border-b text-center'>
+								<tr
+									key={index}
+									className='border-b text-center'
+								>
 									<td className='py-3 px-4'>
 										<Skeleton className='h-6 w-6 mx-auto' />
 									</td>
@@ -1123,7 +1138,6 @@ function ShiftsSkeleton({ isCollapsed }: { isCollapsed: boolean }) {
 							))}
 						</tbody>
 					</table>
-
 				</div>
 
 				<div className='mt-4 flex justify-center'>

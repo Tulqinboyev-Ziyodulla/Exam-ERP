@@ -1,7 +1,7 @@
 import axios from 'axios'
 
 const apiClient = axios.create({
-	baseURL: '/api', 
+	baseURL: 'https://api.noventer.uz/api/',
 	timeout: 10000,
 	headers: {
 		'Content-Type': 'application/json',
@@ -38,7 +38,7 @@ apiClient.interceptors.response.use(
 				}
 
 				const refreshResponse = await axios.post(
-					'http://localhost:5173/api/v1/accounts/token/refresh/',
+					'http://localhost:3000/api/v1/accounts/token/refresh/',
 					{
 						refresh: refreshToken,
 					}
